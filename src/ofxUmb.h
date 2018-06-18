@@ -15,6 +15,8 @@
 #define UMB_RESPONSE_SHORT  50
 #define UMB_RESPONSE_LONG   500
 
+namespace UMB {
+
 typedef enum {
     OK = 0,
     UNBEK_CMD = 16,
@@ -33,7 +35,7 @@ typedef enum {
     BUSY,
     LOW_VOLTAGE,
     HW_ERROR
-} umbStatus;
+} STATUS;
 
 typedef enum {
     UNSIGNED_CHAR = 16,
@@ -44,25 +46,28 @@ typedef enum {
     SIGNED_LONG,
     FLOAT,
     DOUBLE
-} umbType;
+} TYPE;
 
 typedef enum {
-    MWT_CURRENT = 16,
-    MWT_MIN,
-    MWT_MAX,
-    MWT_AVG,
-    MWT_SUM,
-    MWT_VCT
-} umbValue;
+    VALUE_CURRENT = 16,
+	VALUE_MIN,
+	VALUE_MAX,
+	VALUE_AVG,
+	VALUE_SUM,
+	VALUE_VCT
+} VALUE;
+
+}
 
 class ofxUmb {
 public:
     
     ofxUmb();
     
-    vector <ofSerialDeviceInfo> getDeviceList();
-    bool connect(int device = 0);
-    bool connect(string deviceName);
+    vector <ofSerialDeviceInfo> getSerialDevices();
+	vector <string> getSerialNames();
+    bool connect(int serialIndex = 0);
+    bool connect(string serialName);
     void close();
     bool isConnected();
     void flush();
@@ -80,10 +85,10 @@ public:
     vector<int> getChannelNumbers(int block = 0);
     string getChannelVariable(int chan);
     string getChannelUnit(int chan);
-    umbType getChannelDataType(int chan);
-    umbValue getChannelValueType(int chan);
+    UMB::TYPE getChannelDataType(int chan);
+    UMB::VALUE getChannelValueType(int chan);
     
-    bool getOnlineData(int chan, umbType & type, void* & data);
+    bool getOnlineData(int chan, UMB::TYPE & type, void* & data);
     float getOnlineDataAsFloat(int chan, float defaultValue = -1.f);
     
     bool resetSoftware();

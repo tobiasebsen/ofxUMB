@@ -12,6 +12,19 @@ ofxUmb::ofxUmb() {
     frameOut.setSender(0xF001);
 }
 
+vector<ofSerialDeviceInfo> ofxUmb::getSerialDevices() {
+	return serial.getDeviceList();
+}
+
+vector<string> ofxUmb::getSerialNames() {
+	vector<string> names;
+	vector<ofSerialDeviceInfo> infos = serial.getDeviceList();
+	for (auto & i : infos) {
+		names.push_back(i.getDeviceName());
+	}
+	return names;
+}
+
 bool ofxUmb::connect(int device) {
     return serial.setup(device, 19200);
 }
@@ -121,33 +134,33 @@ string ofxUmb::getChannelUnit(int chan) {
     return string();
 }
 
-umbType ofxUmb::getChannelDataType(int chan) {
+UMB::TYPE ofxUmb::getChannelDataType(int chan) {
     frameOut.prepareFrame(0x2D, 3);
     frameOut.setPayload(0, 0x23);
     frameOut.setPayloadShort(1, chan);
     if (transact()) {
         uint16_t c = frameIn.getPayloadShort(2);
-        return (umbType)frameIn.getPayloadByte(4);
+        return (UMB::TYPE)frameIn.getPayloadByte(4);
     }
-    return (umbType)0;
+    return (UMB::TYPE)0;
 }
 
-umbValue ofxUmb::getChannelValueType(int chan) {
+UMB::VALUE ofxUmb::getChannelValueType(int chan) {
     frameOut.prepareFrame(0x2D, 3);
     frameOut.setPayload(0, 0x24);
     frameOut.setPayloadShort(1, chan);
     if (transact()) {
-        return (umbValue)frameIn.getPayloadByte(4);
+        return (UMB::VALUE)frameIn.getPayloadByte(4);
     }
-    return (umbValue)0;
+    return (UMB::VALUE)0;
 }
 
-bool ofxUmb::getOnlineData(int chan, umbType & type, void* & data) {
+bool ofxUmb::getOnlineData(int chan, UMB::TYPE & type, void* & data) {
     frameOut.prepareFrame(0x23, 2);
     frameOut.setPayloadShort(0, chan);
     if (transact(UMB_RESPONSE_LONG)) {
         uint16_t c = frameIn.getPayloadShort(1);
-        type = (umbType)frameIn.getPayloadByte(3);
+        type = (UMB::TYPE)frameIn.getPayloadByte(3);
         data = frameIn.getPayloadPtr(4);
         return true;
     }
@@ -155,10 +168,10 @@ bool ofxUmb::getOnlineData(int chan, umbType & type, void* & data) {
 }
 
 float ofxUmb::getOnlineDataAsFloat(int chan, float defaultValue) {
-    umbType t;
+    UMB::TYPE t;
     void * d = NULL;
     if (getOnlineData(chan, t, d)) {
-        if (t == umbType::FLOAT && d != NULL)
+        if (t == UMB::FLOAT && d != NULL)
             return *(float*)d;
     }
     return defaultValue;
@@ -238,7 +251,7 @@ bool ofxUmb::transact(int timeout) {
         return false;
     }
     
-    if (frameIn.getResponseStatus() != umbStatus::OK) {
+    if (frameIn.getResponseStatus() != UMB::OK) {
         ofLogError("ofxUmb") << "transact() failed. Response status code: " << (int)frameIn.getResponseStatus();
         return false;
     }
